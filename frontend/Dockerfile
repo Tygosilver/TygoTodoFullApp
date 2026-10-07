@@ -1,10 +1,15 @@
 FROM gcc AS builder
-WORKDIR /todo-app/frontend/nginx
-COPY ./nginx .
+WORKDIR /todo-app/frontend
+
 RUN apt-get update && apt-get install -y \
     make \
     libpcre2-dev \
-    zlib1g-dev
+    zlib1g-dev \
+    git
+
+RUN git clone https://github.com/nginx/nginx.git
+WORKDIR /todo-app/frontend/nginx
+
 RUN auto/configure && \
     make && \
     make install
