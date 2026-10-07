@@ -1,0 +1,48 @@
+services:
+  backend:
+    image: todo_backend
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+      - frontend
+    environment:
+      DATABASE_URL: postgresql://${TODO_USER}:${TODO_PASSWORD}@db:5432/${TODO_DB}
+  frontend:
+    image: todo_frontend
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    networks:
+      - frontend
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 8000
+    depends_on:
+      - backend
+  db:
+    image: postgres:16.0
+    environment:
+      POSTGRES_USER: ${TODO_USER}
+      POSTGRES_PASSWORD: ${TODO_PASSWORD}
+      POSTGRES_DB: ${TODO_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 1m
+      timeout: 30s
+      retries: 5
+    volumes:
+    - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+volumes:
+  db-data:
+
+networks:
+  frontend:
+  backend:
